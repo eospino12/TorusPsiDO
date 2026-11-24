@@ -19,10 +19,9 @@ import Mathlib.Tactic.NoncommRing
 * Equation (3.9), elliptic regularity, for Fourier multipliers: if `P = p(D)` is elliptic of
   order `m`, `Pu = f` and `f ∈ H^s`, then `u ∈ H^{s+m}`.
 
-Not formalized: the Fredholm property in Theorem 3.0.4 and the construction (3.2)–(3.6) of the
-parametrix for symbols depending on `x`.  They rely on the symbolic calculus (composition and
-asymptotic sums in `Ψ^m_{ρ,δ}`) and on Sobolev-space continuity of `Op S^m_{ρ,δ}`, which are not
-available in Mathlib (see the README).
+The Fredholm property in Theorem 3.0.4 is proved in `Fredholm.lean`.  Not formalized: the
+construction (3.2)–(3.6) of the parametrix for symbols depending on `x`, which relies on the
+symbolic calculus (composition and asymptotic sums in `Ψ^m_{ρ,δ}`), not available in Mathlib.
 -/
 
 open Complex Finset Real Filter

@@ -5,14 +5,15 @@ Formalización en **Lean 4 + Mathlib** de la tesis de pregrado
 > Esteban Daniel Ospino Tafur, *Sobre los Operadores Pseudodiferenciales en el Toro*,
 > Universidad del Valle, 2025. Director: Ph.D. Julio César Delgado Valencia.
 
-**Estado:** `lake build` termina **sin errores y sin `sorry`**. Los 33 resultados principales,
+**Estado:** `lake build` termina **sin errores y sin `sorry`**. Los 41 resultados principales,
 verificados con `#print axioms`, usan solo los axiomas estándar (`propext`, `Classical.choice`,
-`Quot.sound`).
+`Quot.sound`). Incluye la **propiedad de Fredholm del Teorema 3.0.4**.
 
 *English summary:* a Lean 4 / Mathlib formalization of an undergraduate thesis on periodic
 pseudo-differential operators on the torus 𝕋ⁿ: the torus as ℝⁿ/ℤⁿ, Fourier analysis on ℝ and
 on 𝕋ⁿ (Plancherel, Parseval), finite differences on ℤⁿ, toroidal symbol classes S^m_{ρ,δ},
-toroidal quantization, ellipticity and elliptic regularity for Fourier multipliers.
+toroidal quantization, ellipticity, elliptic regularity for Fourier multipliers, and the
+Fredholm property of `(-Δ)^{ν/2} + Q : Hˢ(𝕋ⁿ) → H^{s-ν}(𝕋ⁿ)` (Theorem 3.0.4).
 Everything compiles with no `sorry`. The formalization also found an error in equation (1.13)
 of the thesis (see below).
 
@@ -72,8 +73,28 @@ correctos están formalizados:
 | Def. 3.0.2 | elíptico / fuertemente elíptico de orden `m` | `IsElliptic`, `IsStronglyElliptic` | `Elliptic.lean` |
 | Ej. 3.0.3 | `-Δ` tiene símbolo `4π²\|ξ\|²` y es elíptico de orden 2 | `Op_lapSymbol`, `lap_stronglyElliptic` | `Quantization.lean`, `Elliptic.lean` |
 | Teo. 3.0.4 (elipticidad) | `(-Δ)^{ν/2} + Q(x)` es fuertemente elíptico | `fracLap_add_potential_stronglyElliptic` | `Elliptic.lean` |
+| **Teo. 3.0.4 (Fredholm)** | `(-Δ)^{ν/2} + Q : Hˢ(𝕋ⁿ) → H^{s−ν}(𝕋ⁿ)` es Fredholm para todo `s ∈ ℝ` | `isFredholm_sobolevOp` | `Fredholm.lean` |
+| Def. 2.0.1 | `S(ℤⁿ)`; `∑ ⟨ξ⟩ᵗ \|φ(ξ)\| < ∞` para `φ ∈ S(ℤⁿ)` | `IsRapidlyDecreasing`, `IsRapidlyDecreasing.summable_weighted` | `Fredholm.lean` |
 | (3.9) | regularidad elíptica `f ∈ Hˢ ⇒ u ∈ H^{s+m}` (multiplicadores) | `elliptic_regularity_multiplier` | `Elliptic.lean` |
 | Ej. 3.0.5 | `F_{𝕋ⁿ}(Pf)(ξ) = (2π\|ξ\|)^ν f̂(ξ)` | `fourier_fracLap`, `mFourierCoeff_OpT` | `Fourier.lean` |
+
+## La propiedad de Fredholm (Teorema 3.0.4)
+
+`isFredholm_sobolevOp` usa la noción de operador de Fredholm de Mathlib
+(`ContinuousLinearMap.IsFredholm`). Se formaliza así:
+
+* `Q ∈ C^∞(𝕋ⁿ)` se describe por sus coeficientes de Fourier `q = Q̂ ∈ S(ℤⁿ)`
+  (Def. 2.0.1; la Def. 2.0.3 de la tesis dice que `F_{𝕋ⁿ} : C^∞(𝕋ⁿ) → S(ℤⁿ)` es biyectiva).
+  La multiplicación por `Q` es la convolución con `q` (`mFourierCoeff_mul_mFourier`).
+* `Hˢ(𝕋ⁿ)` se identifica con `ℓ²(ℤⁿ)` vía `u ↦ (⟨ξ⟩ˢ û(ξ))_ξ` (`inSobolev_iff_memℓp`). En esas
+  coordenadas el operador es `sobolevOp`, y `sobolevOp_apply` da su fórmula explícita.
+* La prueba no usa el cálculo simbólico: `T = A + ι∘(M_Q − I)` con `A = (−Δ)^{ν/2} + 1`
+  invertible, `M_Q` acotado en `Hˢ` (desigualdad de Peetre `weight_ratio_le` y cota de
+  Schur/Young `schur_bound`) e `ι : Hˢ ↪ H^{s−ν}` límite en norma de operadores de rango finito
+  (Rellich). Así `T = A(I + E + F)` con `‖E‖ < 1` y `F` de rango finito.
+
+Nota: en el enunciado de la tesis dice «de `H^ν(𝕋ⁿ)` en `H^{s−ν}(𝕋ⁿ)`»; debe ser
+«de `Hˢ(𝕋ⁿ)` en `H^{s−ν}(𝕋ⁿ)`», que es lo formalizado.
 
 ## Convenciones
 
@@ -97,7 +118,8 @@ Mathlib:
 * el cálculo simbólico (composición y sumas asintóticas en `Ψ^m_{ρ,δ}`), la construcción
   (3.2)–(3.6) de la parametriz para símbolos que dependen de `x`, y la regularidad (3.9) en ese
   caso general;
-* la propiedad de Fredholm del Teorema 3.0.4 y la continuidad `Hˢ → H^{s−m}` de `Op S^m_{ρ,δ}`;
+* la continuidad `Hˢ → H^{s−m}` de `Op S^m_{ρ,δ}` para símbolos generales, y la equivalencia
+  `Q ∈ C^∞(𝕋ⁿ) ⟺ Q̂ ∈ S(ℤⁿ)` (se usa la Def. 2.0.3 de la tesis, sin probarla);
 * la Prop. 2.0.19 (símbolos de Hörmander = símbolos toroidales), el Teo. 2.0.22 (representación de
   operadores continuos en `C^∞(𝕋ⁿ)`), la Obs. 2.0.21 y las estructuras de Fréchet
   (Obs. 2.0.13, 2.0.18);
@@ -113,4 +135,6 @@ TorusPsiDO/
   Quantization.lean  §1.3, §2  polinomios trigonométricos, Op(a), traslaciones, -Δ, Ej. 2.0.30
   Fourier.lean       §1.4–1.5  Gaussiana, inversión, Plancherel/Parseval en 𝕋ⁿ, Ej. 3.0.5
   Elliptic.lean      §3        parametrices, Sobolev, elipticidad, regularidad elíptica
+  L2Operators.lean   §3        operadores diagonales y de núcleo en ℓ²(ℤⁿ), cota de Schur
+  Fredholm.lean      §3        Peetre, S(ℤⁿ), Teorema 3.0.4: propiedad de Fredholm
 ```
