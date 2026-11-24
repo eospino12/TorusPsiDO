@@ -1,0 +1,11 @@
+name = "TorusPsiDO"
+version = "0.1.0"
+defaultTargets = ["TorusPsiDO"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "7dde1da6462d490beca415534c082b4f0435c9a9"
+
+[[lean_lib]]
+name = "TorusPsiDO"
